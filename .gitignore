@@ -1,0 +1,18 @@
+# General/Miscellaneous
+.DS_Store
+*.pem
+.env
+*.local
+
+# Rust
+/back-end/target/
+
+# JavaScript
+/front-end/node_modules
+/front-end/.yarn/install-state.gz
+/front-end/.next/
+/front-end/out/
+/front-end/build
+/front-end/npm-debug.log*
+/front-end/yarn-debug.log*
+/front-end/yarn-error.log*
