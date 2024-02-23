@@ -1,1 +1,11 @@
-# TODO.
+version: '3'
+services:
+  # postgres:
+  #   build: docker/postgres
+  #   image: postgres
+  front-end:
+    build:
+      context: .
+      dockerfile: ./front-end/Dockerfile
+    ports:
+      - 3000:3000
