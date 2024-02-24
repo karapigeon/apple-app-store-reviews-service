@@ -22,17 +22,24 @@ export const loader = async (args: LoaderFunctionArgs ) => {
   // Parse the json data file contents into a json object
   const data: ReviewRecord[] = JSON.parse(fileContents);
   
-  // Calculate Unix timestamp representing 72 hours ago
-  const seventyTwoHoursAgo = Math.floor(Date.now() / 1000) - (80 * 3600);
-
+  // Calculate Unix timestamp representing 1 year.
+  // const seventyTwoHoursAgo = Date.now() - 31507200;
   // Filter recent activity
-  const recentActivity = data.filter((record: ReviewRecord) => record.timestamp < seventyTwoHoursAgo);
+  // const recentActivity: ReviewRecord[] = data.filter((record: ReviewRecord) => {
+  //   if (record.timestamp > seventyTwoHoursAgo) {
+  //     return record;
+  //   }
+  // });
+  // console.log(`${recentActivity}`)
 
-
-  return json({
-    recentActivity,
-  });
+  return json({data});
 };
+
+async function onReloadRecordsClick() {
+  // const response = await fetch('http://127.0.0.1:5050/data');
+  // const data = await response.json();
+  // console.log(data);
+}
 
 export default function Index() {
 	const { data } = useLoaderData<{ data: ReviewRecord[] }>();
@@ -40,7 +47,7 @@ export default function Index() {
 	return (
 		<div>
 			<h1>apple-app-store-reviews-service</h1>
-			<button>Reload Records (Hit Apple RSS feed via back-end service)</button>
+			<button onClick={() => onReloadRecordsClick}>Reload Records (Hit Apple RSS feed via back-end service)</button>
 			<table>
                 <tr>
                     <th>Timestamp</th>
