@@ -3,5 +3,5 @@ FROM golang:1.21.7
 WORKDIR /back-end
 COPY . .
 
-EXPOSE 8080
-CMD ["go", "run", "main.go"]
+EXPOSE 5050
+CMD ["go", "run", "*.go"]

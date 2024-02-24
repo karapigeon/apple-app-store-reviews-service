@@ -1,6 +1,6 @@
 package main
 
-// Go type for data set stored in local disk file.
+// DOC: Go type for interfacing with records stored in local disk file.
 type ReviewRecord struct {
 	Content   string `json:"content"`
 	Author    string `json:"author"`

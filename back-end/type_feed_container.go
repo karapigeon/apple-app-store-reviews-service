@@ -1,7 +1,7 @@
 package main
 
-// Auto generated Go type from sampled JSON using
-// https://transform.tools/json-to-go
+// DOC: I used https://transform.tools/json-to-go to auto 
+// DOC: generated the Go type from sampled JSON since time spent was a concern.
 type FeedContainer struct {
 	Feed struct {
 		Author struct {

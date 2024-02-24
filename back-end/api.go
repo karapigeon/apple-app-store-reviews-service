@@ -6,59 +6,65 @@ import (
     "net/http"
 )
 
-// Constant for specific app ID in the App Store this service is observing.
+// DOC: A constant for the (App Store) app ID this service is observing.
 const appId = "595068606"
 
-// HTTP request handler for /data endpoint.
+// DOC: Request handler for /data endpoint.
 func DataHandler(w http.ResponseWriter, r *http.Request) {
-	// Add appId to request URL.
-    requestUrl := fmt.Sprintf("https://itunes.apple.com/us/rss/customerreviews/id=%s/sortBy=mostRecent/page=1/json", appId)
-	request, err := http.NewRequest(http.MethodGet, requestUrl, nil)
+    endpointUri := fmt.Sprintf("https://itunes.apple.com/us/rss/customerreviews/id=%s/sortBy=mostRecent/page=1/json", appId)
+	response, err := http.Get(endpointUri)
 	
-	// Configure ResponseWriter to gracefully exit. 
-	// This would only really happen if the string interpolation for appId failed.
-	if err != nil {
-		fmt.Printf("Error: Client could not create request: %s", err)
+	/* 
+		| This is one of these where this specific resource (Apple's RSS feed) is very predictable.
+		| I tried to break it with weird appId values, etc and err was always nil because the RSS feed
+		| handled any errors. I've made a general error capture so if it did it handle it gracefully.
+	*/
+	if err != nil || response.StatusCode != http.StatusOK {
 		w.WriteHeader(http.StatusInternalServerError)
-    	w.Write([]byte(fmt.Sprintf("500 - Could not create request with %s", requestUrl)))
+    	w.Write([]byte("500: Uncaught exception during request response"))
 	}
 
-	// Launch request and get back response.
-	response, err := http.DefaultClient.Do(request)
-
-	// Handle generalized error type for response object.
-	// TODO: This could be expanded to handle specific status codes/scenarios.
-	if err != nil {
-		fmt.Printf("Error: Client produced error when making http request: %s", err)
-		w.WriteHeader(http.StatusInternalServerError)
-    	w.Write([]byte("500 - Uncaught exception during request response"))
-	}
-
-	fmt.Printf("Info: Client returned status code: %s with response", response.StatusCode)
 	defer response.Body.Close()
 
-	// Marshal data into inbound data type.
+	// DOC: Decode HTTP response body into inbound Go type.
 	var feedContainer FeedContainer
     err = json.NewDecoder(response.Body).Decode(&feedContainer)
     if err != nil {
-        panic(err)
+        w.WriteHeader(http.StatusBadRequest)
+    	w.Write([]byte("400: Foreign JSON data could not be decoded."))
     }
-    
+
+    // DOC: Calls function in data_transform.go to transform FeedContainer into a collection
+	// DOC: of ReviewRecord which is a Go type with only the fields we want to keep.
 	incomingRecords := TransformForeignEntriesIntoRecords(feedContainer)
 
+	// DOC: Calls function in data_reading.go to open the .json file on disk (or create it)
+	// DOC: and if it has data, decode it into a collection of ReviewRecord.
 	fileName := fmt.Sprintf("%s.json", appId)
 	file, currentLocalRecords := ReadFileFromDiskWithFileNameAndReturnRecords(fileName)
+
+	// DOC: Calls function in data_transform.go to filter incoming records against the existing
+	// DOC: collection to reduce the I/O load/computational complexity using a map.
 	proposedLocalRecords := FilterIncomingRecordsAgainstExistingLocalRecords(incomingRecords, currentLocalRecords)
-	result := RewriteFileWithUpdatedDataSet(file, proposedLocalRecords)
+
+	// DOC: Calls function in data_writing.go to overwrite the .json file with the new collection.
+	result := OverwriteFileWithUpdatedDataSet(file, proposedLocalRecords)
 
 	if result {
 		lenDiff := len(proposedLocalRecords) - len(currentLocalRecords)
-		fmt.Printf("Info: %s was successfully overwritten with %s new records.", fileName, lenDiff)
+		w.WriteHeader(http.StatusOK)
+    	w.Write([]byte(fmt.Sprintf("200: %s new records written to file: %s on disk.", lenDiff, fileName)))
 	} else {
-		fmt.Printf("Info: Something went wrong.")
+		/*
+			| This could have better error handling however I am handling the individual errors inside
+			| the inner functions and they are mostly non-blocking due to the RSS feed architecture.
+			| RSS feeds, especially Apple's resource handles errors very well internally.
+		*/
+		w.WriteHeader(http.StatusTeapot)
+    	w.Write([]byte("418: I'm a teapot."))
 	}
 
-	
+	defer file.Close()
 }
 
 // Root handler to direct usage.
