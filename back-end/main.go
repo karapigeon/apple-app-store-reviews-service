@@ -4,7 +4,11 @@ import (
     "fmt"
     "log"
 	"encoding/json"
+	"strings"
+	"io"
     "net/http"
+	"os"
+	// "time"
 )
 
 // Initialization function to start web server.
@@ -19,8 +23,10 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
     fmt.Fprintf(w, "Hello from Golang! Use the /data endpoint.")
 }
 
-// App Store specific app ID this service is observing.
+// Constant for specific app ID in the App Store this service is observing.
 const appId = "595068606"
+// Constant for number of hours to filter array for.
+const filterLastNumberHours = 72
 
 // HTTP request handler for /data endpoint.
 func dataHandler(w http.ResponseWriter, r *http.Request) {
@@ -58,20 +64,74 @@ func dataHandler(w http.ResponseWriter, r *http.Request) {
     }
     
 	// Convert inbound data type to selective values for outbound data type.
-	var outboundContainer []OutboundContainerEntry
+	var outboundContainer []OutboundRSSFeedEntry
 	for _, element := range feedContainer.Feed.Entry { 
-		outboundContainer = append(outboundContainer, OutboundContainerEntry{Content: element.Content.Label, Author: element.Author.Name.Label, Score: element.ImRating.Label, Timestamp: element.Updated.Label})
+		outboundContainer = append(outboundContainer, OutboundRSSFeedEntry{Content: element.Content.Label, Author: element.Author.Name.Label, Score: element.ImRating.Label, Timestamp: element.Updated.Label, Id: fmt.Sprintf("%s-%s", strings.ReplaceAll(element.Author.Name.Label, " ", ""), element.Updated.Label)})
     } 
 
-	fmt.Printf("Info: Outbound container: %s", outboundContainer)
+	filename := fmt.Sprintf("%s.json", appId)
+
+	// Open the file in read mode, create if it doesn't exist
+	file, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE, 0644)
+	if err != nil {
+		fmt.Printf("Error opening file: %v\n", err)
+		return
+	}
+	defer file.Close()
+
+	var localData []OutboundRSSFeedEntry
+	err = json.NewDecoder(file).Decode(&localData)
+	if err != nil {
+		if err == io.EOF {
+			// If file is empty, initialize the data
+			localData = []OutboundRSSFeedEntry{}
+		} else {
+			fmt.Printf("Error decoding JSON: %v\n", err)
+			return
+		}
+	}
+
+	// Create a map to store the Entry structs indexed by the Id field
+	entriesByUniqueId := make(map[string]OutboundRSSFeedEntry)
+
+	// Populate the map
+	for _, entry := range localData {
+		entriesByUniqueId[entry.Id] = entry
+	}
+
+	for _, entry := range outboundContainer {
+		// Check if the Id exists in the map
+		if _, ok := entriesByUniqueId[entry.Id]; ok {
+			continue
+		} else {
+			fmt.Printf("No matching record exists.")
+			localData = append(localData, entry)
+		}
+	}
+
+	jsonData, err := json.Marshal(localData)
+	if err != nil {
+		fmt.Printf("Error marshaling JSON: %v\n", err)
+		return
+	}
+	
+	// Write the updated data back to the file
+	_, err = file.Write(jsonData)
+	if err != nil {
+		fmt.Printf("Error writing file: %v\n", err)
+		return
+	}
+
+	fmt.Println("File successfully updated.")
 }
 
 // Go type for data set stored in local disk file.s
-type OutboundContainerEntry struct {
+type OutboundRSSFeedEntry struct {
 	Content   string `json:"content"`
 	Author    string `json:"author"`
 	Score     string `json:"score"`
 	Timestamp string `json:"timestamp"`
+	Id string `json:"id"`
 }
 
 // Auto generated Go type from sampled JSON using
