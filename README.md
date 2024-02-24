@@ -1,6 +1,6 @@
 # apple-app-store-reviews-service
 
-Simple microservice to observe updates to Apple's App Store reviews RSS feed. Back-end will be written in Go, front-end will be written in JavaScript/React.
+Simple microservice to observe updates to Apple's App Store reviews RSS feed. Back-end will be written in Go, front-end will be written in TypeScript/React/Remix.
 
 # Dev Setup
 
