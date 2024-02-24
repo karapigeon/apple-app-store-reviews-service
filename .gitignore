@@ -7,8 +7,8 @@
 .env
 *.local
 
-# Rust
-/back-end/target/
+# Go
+/back-end/bin/
 
 # JavaScript
 /front-end/node_modules
