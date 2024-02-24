@@ -40,7 +40,7 @@ func DataHandler(w http.ResponseWriter, r *http.Request) {
 
 	// DOC: Calls function in data_reading.go to open the .json file on disk (or create it)
 	// DOC: and if it has data, decode it into a collection of ReviewRecord.
-	fileName := fmt.Sprintf("../%s.json", appId)
+	fileName := "../front-end/json/data.json"
 	file, currentLocalRecords := ReadFileFromDiskWithFileNameAndReturnRecords(fileName)
 
 	// DOC: Calls function in data_transform.go to filter incoming records against the existing
