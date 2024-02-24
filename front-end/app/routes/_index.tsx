@@ -10,7 +10,7 @@ type ReviewRecord = {
 	content: string;
 	author: string;
 	score: string;
-	timestamp: Date;
+	timestamp: number;
 	id: string;
 };
 
@@ -22,16 +22,15 @@ export const loader = async (args: LoaderFunctionArgs ) => {
   // Parse the json data file contents into a json object
   const data: ReviewRecord[] = JSON.parse(fileContents);
   
-  // Calculate the timestamp of 72 hours ago
-  const seventyTwoHoursAgo = new Date();
-  seventyTwoHoursAgo.setDate(seventyTwoHoursAgo.getDate() - 5);
+  // Calculate Unix timestamp representing 72 hours ago
+  const seventyTwoHoursAgo = Math.floor(Date.now() / 1000) - (80 * 3600);
 
-  // Filter records within the last 72 hours
-  const last72HoursRecords = data.filter(record => record.timestamp > seventyTwoHoursAgo);
+  // Filter recent activity
+  const recentActivity = data.filter((record: ReviewRecord) => record.timestamp < seventyTwoHoursAgo);
 
 
   return json({
-    last72HoursRecords,
+    recentActivity,
   });
 };
 

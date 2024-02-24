@@ -17,14 +17,14 @@ func TransformForeignEntriesIntoRecords(container FeedContainer) []ReviewRecord 
 		if unixTimestamp != nil {
 			// Picks out the content, author, score, and timestamp.
 			// As well as creates a sanitized composit key of author+timestamp to ensure review uniqueness.
-			records = append(records, ReviewRecord{Content: element.Content.Label, Author: element.Author.Name.Label, Score: element.ImRating.Label, Timestamp: *unixTimestamp, Id: fmt.Sprintf("%s-%s", strings.ReplaceAll(element.Author.Name.Label, " ", ""), *unixTimestamp)})
+			records = append(records, ReviewRecord{Content: element.Content.Label, Author: element.Author.Name.Label, Score: element.ImRating.Label, Timestamp: *unixTimestamp, Id: fmt.Sprintf("%s-%d", strings.ReplaceAll(element.Author.Name.Label, " ", ""), *unixTimestamp)})
 		}
 	}
 
 	return records
 }
 
-func transformRFC3339TimestampIntoMilliseconds(timestampString string) *string {
+func transformRFC3339TimestampIntoMilliseconds(timestampString string) *int64 {
 	 // Parse the timestamp string into a time.Time object.
 	 timestamp, err := time.Parse(time.RFC3339, timestampString)
 	 if err != nil {
@@ -33,10 +33,10 @@ func transformRFC3339TimestampIntoMilliseconds(timestampString string) *string {
 	 }
 
 	 unixTimestamp := timestamp.UnixNano() / int64(time.Millisecond)
-	 castedTimestamp := fmt.Sprint(unixTimestamp)
+	//  castedTimestamp := fmt.Sprint(unixTimestamp)
 
 	 // Convert time to milliseconds.
-	 return &castedTimestamp
+	 return &unixTimestamp
 }
 
 // DOC: Filters out records from the new collection that already exists in the current local collection.
@@ -59,17 +59,8 @@ func FilterIncomingRecordsAgainstExistingLocalRecords(incoming []ReviewRecord, l
 	}
 
 	//  Sort the array of records by timestamp in descending order.
-	// Sort the array of records by timestamp in descending order
     sort.Slice(local, func(i, j int) bool {
-        timeI, err := time.Parse(time.RFC3339, local[i].Timestamp)
-        if err != nil {
-            return false
-        }
-        timeJ, err := time.Parse(time.RFC3339, local[j].Timestamp)
-        if err != nil {
-            return false
-        }
-        return timeI.After(timeJ)
+        return i < j
     })
 
 	return local
