@@ -1,9 +1,9 @@
 package main
 
 import (
-    "fmt"
 	"encoding/json"
-    "net/http"
+	"fmt"
+	"net/http"
 )
 
 // DOC: A constant for the (App Store) app ID this service is observing.
@@ -11,30 +11,30 @@ const appId = "595068606"
 
 // DOC: Request handler for /data endpoint.
 func DataHandler(w http.ResponseWriter, r *http.Request) {
-    endpointUri := fmt.Sprintf("https://itunes.apple.com/us/rss/customerreviews/id=%s/sortBy=mostRecent/page=1/json", appId)
+	endpointUri := fmt.Sprintf("https://itunes.apple.com/us/rss/customerreviews/id=%s/sortBy=mostRecent/page=1/json", appId)
 	response, err := http.Get(endpointUri)
-	
-	/* 
+
+	/*
 		| This is one of these where this specific resource (Apple's RSS feed) is very predictable.
 		| I tried to break it with weird appId values, etc and err was always nil because the RSS feed
 		| handled any errors. I've made a general error capture so if it did it handle it gracefully.
 	*/
 	if err != nil || response.StatusCode != http.StatusOK {
 		w.WriteHeader(http.StatusInternalServerError)
-    	w.Write([]byte("500: Uncaught exception during request response"))
+		w.Write([]byte("500: Uncaught exception during request response"))
 	}
 
 	defer response.Body.Close()
 
 	// DOC: Decode HTTP response body into inbound Go type.
 	var feedContainer FeedContainer
-    err = json.NewDecoder(response.Body).Decode(&feedContainer)
-    if err != nil {
-        w.WriteHeader(http.StatusBadRequest)
-    	w.Write([]byte("400: Foreign JSON data could not be decoded."))
-    }
+	err = json.NewDecoder(response.Body).Decode(&feedContainer)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("400: Foreign JSON data could not be decoded."))
+	}
 
-    // DOC: Calls function in data_transform.go to transform FeedContainer into a collection
+	// DOC: Calls function in data_transform.go to transform FeedContainer into a collection
 	// DOC: of ReviewRecord which is a Go type with only the fields we want to keep.
 	incomingRecords := TransformForeignEntriesIntoRecords(feedContainer)
 
@@ -53,7 +53,7 @@ func DataHandler(w http.ResponseWriter, r *http.Request) {
 	if result {
 		lenDiff := len(proposedLocalRecords) - len(currentLocalRecords)
 		w.WriteHeader(http.StatusOK)
-    	w.Write([]byte(fmt.Sprintf("200: %s new records written to file: %s on disk.", lenDiff, fileName)))
+		w.Write([]byte(fmt.Sprintf("200: %s new records written to file: %s on disk.", lenDiff, fileName)))
 	} else {
 		/*
 			| This could have better error handling however I am handling the individual errors inside
@@ -61,7 +61,7 @@ func DataHandler(w http.ResponseWriter, r *http.Request) {
 			| RSS feeds, especially Apple's resource handles errors very well internally.
 		*/
 		w.WriteHeader(http.StatusTeapot)
-    	w.Write([]byte("418: I'm a teapot."))
+		w.Write([]byte("418: I'm a teapot."))
 	}
 
 	defer file.Close()
@@ -69,5 +69,5 @@ func DataHandler(w http.ResponseWriter, r *http.Request) {
 
 // Root handler to direct usage.
 func RootHandler(w http.ResponseWriter, r *http.Request) {
-    fmt.Fprintf(w, "Hello from Golang! Call the /data endpoint.")
+	fmt.Fprintf(w, "Hello from Golang! Call the /data endpoint.")
 }

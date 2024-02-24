@@ -1,6 +1,6 @@
 package main
 
-// DOC: I used https://transform.tools/json-to-go to auto 
+// DOC: I used https://transform.tools/json-to-go to auto
 // DOC: generated the Go type from sampled JSON since time spent was a concern.
 type FeedContainer struct {
 	Feed struct {

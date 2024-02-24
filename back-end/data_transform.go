@@ -1,7 +1,7 @@
 package main
 
 import (
-    "fmt"
+	"fmt"
 	"strings"
 )
 
@@ -9,11 +9,11 @@ import (
 // DOC: This only contains the fields required by the front-end.
 func TransformForeignEntriesIntoRecords(container FeedContainer) []ReviewRecord {
 	var records []ReviewRecord
-	for _, element := range container.Feed.Entry { 
+	for _, element := range container.Feed.Entry {
 		// Picks out the content, author, score, and timestamp.
 		// As well as creates a sanitized composit key of author+timestamp to ensure review uniqueness.
 		records = append(records, ReviewRecord{Content: element.Content.Label, Author: element.Author.Name.Label, Score: element.ImRating.Label, Timestamp: element.Updated.Label, Id: fmt.Sprintf("%s-%s", strings.ReplaceAll(element.Author.Name.Label, " ", ""), element.Updated.Label)})
-    } 
+	}
 
 	return records
 }
