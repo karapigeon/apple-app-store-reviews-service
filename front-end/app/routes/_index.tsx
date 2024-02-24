@@ -10,7 +10,7 @@ type ReviewRecord = {
 	content: string;
 	author: string;
 	score: string;
-	timestamp: string;
+	timestamp: Date;
 	id: string;
 };
 
@@ -21,9 +21,17 @@ export const loader = async (args: LoaderFunctionArgs ) => {
   const fileContents = await fs.readFile(jsonDirectory + "/data.json", "utf8");
   // Parse the json data file contents into a json object
   const data: ReviewRecord[] = JSON.parse(fileContents);
+  
+  // Calculate the timestamp of 72 hours ago
+  const seventyTwoHoursAgo = new Date();
+  seventyTwoHoursAgo.setDate(seventyTwoHoursAgo.getDate() - 5);
+
+  // Filter records within the last 72 hours
+  const last72HoursRecords = data.filter(record => record.timestamp > seventyTwoHoursAgo);
+
 
   return json({
-    data,
+    last72HoursRecords,
   });
 };
 
@@ -33,6 +41,7 @@ export default function Index() {
 	return (
 		<div>
 			<h1>apple-app-store-reviews-service</h1>
+			<button>Reload Records (Hit Apple RSS feed via back-end service)</button>
 			<table>
                 <tr>
                     <th>Timestamp</th>
