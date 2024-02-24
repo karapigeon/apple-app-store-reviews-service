@@ -1,5 +1,5 @@
 # Testing
-/back-end/595068606.json
+/front-end/json/data.json
 
 # General/Miscellaneous
 .DS_Store
@@ -7,8 +7,8 @@
 .env
 *.local
 
-# Rust
-/back-end/target/
+# Go
+/back-end/bin/
 
 # JavaScript
 /front-end/node_modules

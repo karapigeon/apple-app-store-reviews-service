@@ -5,6 +5,6 @@ type ReviewRecord struct {
 	Content   string `json:"content"`
 	Author    string `json:"author"`
 	Score     string `json:"score"`
-	Timestamp string `json:"timestamp"`
+	Timestamp int64 `json:"timestamp"`
 	Id        string `json:"id"`
 }
