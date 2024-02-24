@@ -40,7 +40,7 @@ func DataHandler(w http.ResponseWriter, r *http.Request) {
 
 	// DOC: Calls function in data_reading.go to open the .json file on disk (or create it)
 	// DOC: and if it has data, decode it into a collection of ReviewRecord.
-	fileName := fmt.Sprintf("%s.json", appId)
+	fileName := fmt.Sprintf("../%s.json", appId)
 	file, currentLocalRecords := ReadFileFromDiskWithFileNameAndReturnRecords(fileName)
 
 	// DOC: Calls function in data_transform.go to filter incoming records against the existing
@@ -53,7 +53,7 @@ func DataHandler(w http.ResponseWriter, r *http.Request) {
 	if result {
 		lenDiff := len(proposedLocalRecords) - len(currentLocalRecords)
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(fmt.Sprintf("200: %s new records written to file: %s on disk.", lenDiff, fileName)))
+		w.Write([]byte(fmt.Sprintf("200: %s Records written to disk: %s current, %s new, %s diff.", len(currentLocalRecords), len(proposedLocalRecords), lenDiff)))
 	} else {
 		/*
 			| This could have better error handling however I am handling the individual errors inside
